@@ -32,6 +32,7 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"strconv"
@@ -109,6 +110,13 @@ func main() {
 		glog.Fatalf("Failed to fetch config: %v", err)
 	}
 
+	go func() {
+		for {
+			time.Sleep(5 * time.Second)
+			readLocalFile()
+		}
+	}()
+
 	if err := gcsrunner.StartEnvoyAndWait(signalChan, gcsrunner.StartEnvoyOptions{
 		BinaryPath:       envoyBin,
 		ConfigPath:       envoyConfigPath,
@@ -117,4 +125,12 @@ func main() {
 	}); err != nil {
 		glog.Fatalf("Envoy erred: %v", err)
 	}
+}
+
+func readLocalFile() {
+	content, err := ioutil.ReadFile("out.txt")
+	if err != nil {
+		glog.Warningf("Error reading out.txt: %v", err)
+	}
+	glog.Infof("Found content:\n%s", string(content))
 }
