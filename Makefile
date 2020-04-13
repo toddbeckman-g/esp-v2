@@ -51,30 +51,30 @@ build: format
 
 build-envoy-asan:
 	@echo "--> building envoy (compilation_mode=fastbuild)"
-	@CC=clang-8 CXX=clang++-8 bazel build --config=clang-asan //src/envoy:envoy
+	@CC=clang-8 CXX=clang++-8 bazelisk build --config=clang-asan //src/envoy:envoy
 	@cp -f bazel-bin/src/envoy/envoy bin/
 
 build-envoy-tsan:
 	@echo "--> building envoy (compilation_mode=fastbuild)"
-	@CC=clang-8 CXX=clang++-8 bazel build --config=clang-tsan  //src/envoy:envoy
+	@CC=clang-8 CXX=clang++-8 bazelisk build --config=clang-tsan  //src/envoy:envoy
 	@cp -f bazel-bin/src/envoy/envoy bin/
 
 
 build-envoy:
 	@echo "--> building envoy (compilation_mode=release)"
-	@CC=clang-8 CXX=clang++-8 bazel build --config=clang-release //src/envoy:envoy
+	@CC=clang-8 CXX=clang++-8 bazelisk build --config=clang-release //src/envoy:envoy
 	@cp -f bazel-bin/src/envoy/envoy bin/
 
 build-envoy-debug:
 	@echo "--> building envoy (compilation_mode=debug)"
-	@CC=clang-8 CXX=clang++-8 bazel build --config=debug //src/envoy:envoy
+	@CC=clang-8 CXX=clang++-8 bazelisk build --config=debug //src/envoy:envoy
 	@cp -f bazel-bin/src/envoy/envoy bin/
 
 build-grpc-echo:
 	@echo "--> building grpc-echo"
-	@bazel build --cxxopt='-std=c++14' tests/endpoints/grpc_echo:grpc-test-client --incompatible_no_support_tools_in_action_inputs=false
-	@bazel build --cxxopt='-std=c++14' //tests/endpoints/grpc_echo:grpc-test-server --incompatible_no_support_tools_in_action_inputs=false
-	@bazel build --cxxopt='-std=c++14' tests/endpoints/grpc_echo:grpc-test_descriptor --incompatible_no_support_tools_in_action_inputs=false
+	@bazelisk build --cxxopt='-std=c++14' tests/endpoints/grpc_echo:grpc-test-client --incompatible_no_support_tools_in_action_inputs=false
+	@bazelisk build --cxxopt='-std=c++14' //tests/endpoints/grpc_echo:grpc-test-server --incompatible_no_support_tools_in_action_inputs=false
+	@bazelisk build --cxxopt='-std=c++14' tests/endpoints/grpc_echo:grpc-test_descriptor --incompatible_no_support_tools_in_action_inputs=false
 	@cp -f bazel-bin/tests/endpoints/grpc_echo/grpc-test-client bin/grpc_echo_client
 	@cp -f bazel-bin/tests/endpoints/grpc_echo/grpc-test-server bin/grpc_echo_server
 	@cp -f bazel-bin/tests/endpoints/grpc_echo/grpc-test.descriptor tests/endpoints/grpc_echo/proto/api_descriptor.pb
@@ -82,9 +82,9 @@ build-grpc-echo:
 build-grpc-bookstore:
 	@echo "--> building bookstore-grpc"
 	@echo "Notice: please make sure to temporarily delete tests/endpoints/bookstore_grpc/BUILD in order to run this command"
-	@bazel build tests/endpoints/bookstore_grpc/proto:bookstore_descriptor --incompatible_no_support_tools_in_action_inputs=false
+	@bazelisk build tests/endpoints/bookstore_grpc/proto:bookstore_descriptor --incompatible_no_support_tools_in_action_inputs=false
 	@cp -f bazel-bin/tests/endpoints/bookstore_grpc/proto/bookstore.descriptor tests/endpoints/bookstore_grpc/proto/api_descriptor.pb
-	@bazel build @com_google_protobuf//:protoc
+	@bazelisk build @com_google_protobuf//:protoc
 	@bazel-bin/external/com_google_protobuf/protoc -I tests/endpoints/bookstore_grpc/proto/v1 -I bazel-esp-v2/external/com_google_protobuf/src -I bazel-esp-v2/external/com_github_googleapis_googleapis \
 	  -I tests/endpoints/bookstore_grpc/proto/ tests/endpoints/bookstore_grpc/proto/v1/bookstore.proto --go_out=plugins=grpc:tests/endpoints/bookstore_grpc/proto/v1/
 	@bazel-bin/external/com_google_protobuf/protoc -I tests/endpoints/bookstore_grpc/proto/v2 -I bazel-esp-v2/external/com_google_protobuf/src -I bazel-esp-v2/external/com_github_googleapis_googleapis \
@@ -93,10 +93,10 @@ build-grpc-bookstore:
 
 build-grpc-interop:
 	@echo "--> building the grpc-interop-test client and server"
-	@bazel build @com_github_grpc_grpc//test/cpp/interop:interop_client
-	@bazel build @com_github_grpc_grpc//test/cpp/interop:metrics_client
-	@bazel build @com_github_grpc_grpc//test/cpp/interop:interop_server
-	@bazel build @com_github_grpc_grpc//test/cpp/interop:stress_test
+	@bazelisk build @com_github_grpc_grpc//test/cpp/interop:interop_client
+	@bazelisk build @com_github_grpc_grpc//test/cpp/interop:metrics_client
+	@bazelisk build @com_github_grpc_grpc//test/cpp/interop:interop_server
+	@bazelisk build @com_github_grpc_grpc//test/cpp/interop:stress_test
 	@cp -f bazel-bin/external/com_github_grpc_grpc/test/cpp/interop/interop_client bin/
 	@cp -f bazel-bin/external/com_github_grpc_grpc/test/cpp/interop/metrics_client bin/
 	@cp -f bazel-bin/external/com_github_grpc_grpc/test/cpp/interop/interop_server bin/
@@ -131,15 +131,15 @@ test-debug: format
 
 test-envoy: format
 	@echo "--> running envoy's unit tests"
-	@bazel test //src/...
+	@bazelisk test //src/...
 
 test-envoy-asan: format
 	@echo "--> running envoy's unit tests (asan)"
-	@CC=clang-8 CXX=clang++-8 ASAN_SYMBOLIZER_PATH=$(which llvm-symbolizer-8) bazel test --config=clang-asan  --test_output=errors //src/...
+	@CC=clang-8 CXX=clang++-8 ASAN_SYMBOLIZER_PATH=$(which llvm-symbolizer-8) bazelisk test --config=clang-asan  --test_output=errors //src/...
 
 test-envoy-tsan: format
 	@echo "--> running envoy's unit tests (tsan)"
-	@CC=clang-8 CXX=clang++-8 ASAN_SYMBOLIZER_PATH=$(which llvm-symbolizer-8) bazel test --config=clang-tsan  --test_output=errors  //src/...
+	@CC=clang-8 CXX=clang++-8 ASAN_SYMBOLIZER_PATH=$(which llvm-symbolizer-8) bazelisk test --config=clang-tsan  --test_output=errors  //src/...
 
 .PHONY: integration-test-run-sequential integration-test-run-parallel integration-test integration-test-asan integration-test-tsan integration-debug
 integration-test-run-sequential:
@@ -184,7 +184,7 @@ depend.update:
 	@echo "--> generating go proto files"
 	./api/scripts/go_proto_gen.sh
 
-depend.install: tools.beautysh
+depend.install: 
 	@echo "--> generating go proto files"
 	./api/scripts/go_proto_gen.sh
 
@@ -196,7 +196,7 @@ depend.install.endpoints:
 # Target:  tools
 #----------------------------------------------------------------------------
 .PHONY: tools tools.goimports tools.golint tools.govet \
-	tools.buildifier tools.beautysh
+	tools.buildifier 
 
 tools: tools.goimports tools.golint tools.govet tools.buildifier
 
@@ -222,12 +222,6 @@ tools.buildifier:
 	@command -v buildifier >/dev/null ; if [ $$? -ne 0 ]; then \
 		echo "--> installing buildifier"; \
 		go get github.com/bazelbuild/buildtools/buildifier; \
-	fi
-
-tools.beautysh:
-	@command -v beautysh  >/dev/null ; if [ $$? -ne 0 ]; then \
-		echo "--> installing beautysh"; \
-		pip install --user beautysh; \
 	fi
 
 
@@ -261,14 +255,10 @@ format: tools.goimports tools.buildifier
 
 	@make spelling.fix
 
-.PHONY: clang-format shell-format
+.PHONY: clang-format
 clang-format:
 	@echo "--> formatting code with 'clang-format-7' tool"
 	@echo $(CPP_PROTO_FILES) | xargs clang-format-7 -i
-
-shell-format: tools.beautysh
-	@echo "--> formatting shell scripts with 'beautysh' tool"
-	@git ls-files "*.sh" | xargs ${HOME}/.local/bin/beautysh -i 2
 
 .PHONY: format.check
 format.check: tools.goimports

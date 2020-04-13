@@ -131,6 +131,7 @@ func readLocalFile() {
 	content, err := ioutil.ReadFile("out.txt")
 	if err != nil {
 		glog.Warningf("Error reading out.txt: %v", err)
+		return
 	}
 	glog.Infof("Found content:\n%s", string(content))
 }
