@@ -49,6 +49,8 @@ const (
 	fetchGCSObjectTimeout         = 5 * time.Minute
 	terminateEnvoyTimeout         = time.Minute
 	replaceListenerPort           = 8080
+
+	fileToWatch = "loopback.txt"
 )
 
 var (
@@ -128,9 +130,9 @@ func main() {
 }
 
 func readLocalFile() {
-	content, err := ioutil.ReadFile("out.txt")
+	content, err := ioutil.ReadFile(fileToWatch)
 	if err != nil {
-		glog.Warningf("Error reading out.txt: %v", err)
+		glog.Warningf("Error reading %s: %v", fileToWatch, err)
 	}
 	glog.Infof("Found content:\n%s", string(content))
 }

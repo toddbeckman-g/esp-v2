@@ -101,14 +101,20 @@ func transformConfigBytes(config []byte, opts FetchConfigOptions) ([]byte, error
 
 func transformEnvoyConfig(bootstrap *bootstrappb.Bootstrap, opts FetchConfigOptions) error {
 	listeners := bootstrap.GetStaticResources().GetListeners()
-	if len(listeners) != 1 {
-		return fmt.Errorf("expected exactly 1 listener, got: %d", len(listeners))
+	var i int
+	for i = 0; i < len(listeners); i++ {
+		if listeners[i].GetName() == "http_listener" {
+			break
+		}
 	}
-	if err := doListenerTransform(listeners[0], opts); err != nil {
+	if i == len(listeners) {
+		return fmt.Errorf("did not find http_listener among listeners, got: %v", listeners)
+	}
+	if err := doListenerTransform(listeners[i], opts); err != nil {
 		return err
 	}
 	httpConMgrTransformed := false
-	for _, c := range listeners[0].GetFilterChains() {
+	for _, c := range listeners[i].GetFilterChains() {
 		if filters := c.GetFilters(); filters != nil {
 			for _, f := range filters {
 				if f.GetName() == util.HTTPConnectionManager {
