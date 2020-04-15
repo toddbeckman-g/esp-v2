@@ -71,7 +71,7 @@ func StartEnvoyAndWait(signalChan chan os.Signal, opts StartEnvoyOptions) error 
 		if cmd.Process == nil {
 			return fmt.Errorf("cmd not started, which should never happen")
 		}
-		glog.Errorf("Stopping Envoy due to signal: %v", sig)
+		glog.Infof("Stopping Envoy due to signal: %v", sig)
 
 		// This will always be a signal to stop the process.
 		if err := cmd.Process.Signal(sig); err != nil {

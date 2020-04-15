@@ -32,10 +32,11 @@ package main
 
 import (
 	"flag"
-	"io/ioutil"
+	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/GoogleCloudPlatform/esp-v2/src/go/gcsrunner"
@@ -51,6 +52,7 @@ const (
 	replaceListenerPort           = 8080
 
 	fileToWatch = "loopback.txt"
+	fakescPort  = "8091"
 )
 
 var (
@@ -97,7 +99,7 @@ func main() {
 	}
 
 	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan)
+	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
 
 	if err := gcsrunner.FetchConfigFromGCS(gcsrunner.FetchConfigOptions{
 		BucketName:                    bucketName,
@@ -112,13 +114,15 @@ func main() {
 		glog.Fatalf("Failed to fetch config: %v", err)
 	}
 
-	go func() {
-		for {
-			time.Sleep(5 * time.Second)
-			readLocalFile()
-		}
-	}()
+	http.HandleFunc("/", handler)
+	go http.ListenAndServe(fakescPort, nil)
 
+	if _, err := os.Stat("/var/log"); os.IsNotExist(err) {
+		err := os.MkdirAll("/var/log", os.ModeDir)
+		if err != nil {
+			glog.Fatal("Failed to make /var/log: %v", err)
+		}
+	}
 	if err := gcsrunner.StartEnvoyAndWait(signalChan, gcsrunner.StartEnvoyOptions{
 		BinaryPath:       envoyBin,
 		ConfigPath:       envoyConfigPath,
@@ -129,11 +133,6 @@ func main() {
 	}
 }
 
-func readLocalFile() {
-	content, err := ioutil.ReadFile(fileToWatch)
-	if err != nil {
-		glog.Warningf("Error reading %s: %v", fileToWatch, err)
-		return
-	}
-	glog.Infof("Found content:\n%s", string(content))
+func handler(w http.ResponseWriter, req *http.Request) {
+	w.Write([]byte("OK"))
 }
